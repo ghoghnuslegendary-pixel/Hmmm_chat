@@ -3,58 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>چت‌روم اختصاصی</title>
+    <title>Messenger Pro</title>
     <style>
-        :root { --primary: #0084ff; --bg: #f4f7f6; --my-msg: #dcf8c6; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        #app { background: white; width: 100%; max-width: 450px; height: 90vh; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: var(--primary); color: white; padding: 15px; text-align: center; font-size: 1.2rem; font-weight: bold; }
+        :root { --primary: #0084ff; --bg: #f4f7f6; }
+        body { font-family: Tahoma, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #app { background: white; width: 100%; max-width: 450px; height: 95vh; border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: bold; }
         #setup, #chat-room { padding: 20px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .hidden { display: none !important; }
-        input, select { margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
-        button { padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        button:hover { background: #0056b3; }
+        input, select { margin: 8px 0; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        button { padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         #messages { flex: 1; overflow-y: auto; padding: 15px; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; border-radius: 10px; }
-        .msg { padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 0.95rem; line-height: 1.4; position: relative; }
-        .msg-other { background: white; align-self: flex-start; border-bottom-right-radius: 2px; }
-        .msg-me { background: var(--my-msg); align-self: flex-end; border-bottom-left-radius: 2px; }
-        .msg-info { font-size: 0.7rem; color: #666; display: block; margin-bottom: 4px; }
-        .footer { padding: 15px; display: flex; gap: 10px; background: #f0f0f0; }
-        #msgInput { flex: 1; margin: 0; }
-        .invite-box { background: #e1f5fe; padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px dashed #039be5; }
-        .invite-link { font-size: 0.8rem; color: #0277bd; word-break: break-all; user-select: all; cursor: pointer; }
+        .msg { padding: 10px; border-radius: 12px; max-width: 85%; font-size: 14px; position: relative; }
+        .msg-me { background: #dcf8c6; align-self: flex-end; }
+        .msg-other { background: white; align-self: flex-start; }
+        .footer { padding: 15px; display: flex; gap: 8px; background: #f0f0f0; align-items: center; }
+        .bg-tools { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; font-size: 12px; }
+        .color-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 1px solid #999; }
+        .img-msg { max-width: 100%; border-radius: 8px; margin-top: 5px; }
+        .file-link { display: block; margin-top: 5px; color: #0084ff; text-decoration: none; font-size: 12px; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 4px; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div class="header">اتاق گفتگو</div>
+    <div class="header">پیام‌رسان اختصاصی</div>
     
     <div id="setup">
-        <p style="text-align: center; color: #555;">اطلاعات اتاق را وارد کنید</p>
-        <input type="text" id="roomId" placeholder="نام اتاق (مثلا: MyFamily)">
-        <input type="text" id="username" placeholder="نام نمایشی شما">
-        <input type="password" id="passcode" placeholder="رمز عبور (پسکد)">
+        <input type="text" id="roomId" placeholder="نام اتاق">
+        <input type="text" id="username" placeholder="نام شما">
+        <input type="password" id="passcode" placeholder="رمز عبور اتاق">
         <select id="icon">
-            <option value="👤">👤 معمولی</option>
-            <option value="🦊">🦊 روباه</option>
-            <option value="🦸‍♂️">🦸‍♂️ قهرمان</option>
-            <option value="👑">👑 لیدر</option>
-            <option value="👻">👻 شبح</option>
+            <option value="👤">👤 کاربر</option>
+            <option value="🐱">🐱 گربه</option>
+            <option value="🤖">🤖 ربات</option>
+            <option value="💎">💎 ویژه</option>
         </select>
-        <button onclick="joinRoom()">ورود به چت</button>
-
-        <div id="inviteArea" class="hidden invite-box">
-            <span style="font-size: 0.8rem; font-weight: bold;">لینک دعوت:</span>
-            <div id="shareLink" class="invite-link"></div>
-            <p style="font-size: 0.7rem; margin-top: 5px; color: #555;">این لینک را برای دوستان خود بفرستید.</p>
+        <button onclick="joinRoom()">ورود به اتاق</button>
+        <div id="inviteArea" class="hidden" style="margin-top:15px; font-size:11px; color:#666;">
+            لینک دعوت: <code id="shareLink" style="background:#eee; display:block; padding:5px;"></code>
         </div>
     </div>
 
     <div id="chat-room" class="hidden">
+        <div class="bg-tools">
+            <span>رنگ چت:</span>
+            <div class="color-dot" style="background:#e5ddd5" onclick="changeBg('#e5ddd5')"></div>
+            <div class="color-dot" style="background:#d1e7ff" onclick="changeBg('#d1e7ff')"></div>
+            <div class="color-dot" style="background:#ffd1d1" onclick="changeBg('#ffd1d1')"></div>
+        </div>
         <div id="messages"></div>
         <div class="footer">
-            <input type="text" id="msgInput" placeholder="چیزی بنویسید..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <input type="file" id="fileInput" style="display:none" onchange="uploadFile()">
+            <button onclick="document.getElementById('fileInput').click()" style="background:#666">📎</button>
+            <input type="text" id="msgInput" placeholder="پیام..." style="flex:1">
             <button onclick="sendMessage()">ارسال</button>
         </div>
     </div>
@@ -63,64 +65,66 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
-    
-    // پر کردن خودکار فیلد اتاق از طریق لینک (اگر موجود باشد)
     const params = new URLSearchParams(window.location.search);
-    if(params.has('room')) {
-        document.getElementById('roomId').value = params.get('room');
-    }
+    if(params.has('room')) document.getElementById('roomId').value = params.get('room');
+
+    function changeBg(color) { document.getElementById('messages').style.background = color; }
 
     function joinRoom() {
-        const roomId = document.getElementById('roomId').value;
-        const username = document.getElementById('username').value;
-        const passcode = document.getElementById('passcode').value;
-        const icon = document.getElementById('icon').value;
-
-        if(!roomId || !username || !passcode) {
-            alert("لطفا تمام موارد را پر کنید!");
-            return;
+        const data = {
+            roomId: document.getElementById('roomId').value,
+            username: document.getElementById('username').value,
+            passcode: document.getElementById('passcode').value,
+            icon: document.getElementById('icon').value
+        };
+        if(data.roomId && data.username && data.passcode) {
+            socket.emit('join-room', data);
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('chat-room').classList.remove('hidden');
+            document.getElementById('shareLink').innerText = window.location.origin + "?room=" + data.roomId;
+            document.getElementById('inviteArea').classList.remove('hidden');
         }
+    }
 
-        socket.emit('join-room', { roomId, username, passcode, icon });
-        
-        // نمایش محیط چت
-        document.getElementById('setup').classList.add('hidden');
-        document.getElementById('chat-room').classList.remove('hidden');
-        
-        // ایجاد لینک دعوت اختصاصی
-        const inviteLink = window.location.origin + "?room=" + encodeURIComponent(roomId);
-        document.getElementById('inviteArea').classList.remove('hidden');
-        document.getElementById('shareLink').innerText = inviteLink;
+    function uploadFile() {
+        const file = document.getElementById('fileInput').files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            socket.emit('send-message', {
+                roomId: document.getElementById('roomId').value,
+                message: "فایل پیوست شد",
+                file: e.target.result,
+                fileName: file.name,
+                fileType: file.type
+            });
+        };
+        reader.readAsDataURL(file);
     }
 
     function sendMessage() {
-        const msgInput = document.getElementById('msgInput');
-        const roomId = document.getElementById('roomId').value;
-        if(msgInput.value.trim()) {
-            socket.emit('send-message', { roomId, message: msgInput.value });
-            msgInput.value = "";
+        const msg = document.getElementById('msgInput').value;
+        if(msg) {
+            socket.emit('send-message', { roomId: document.getElementById('roomId').value, message: msg });
+            document.getElementById('msgInput').value = "";
         }
     }
 
     socket.on('new-message', (data) => {
-        const messagesDiv = document.getElementById('messages');
-        const isMe = data.username === document.getElementById('username').value;
-        
         const div = document.createElement('div');
+        const isMe = data.username === document.getElementById('username').value;
         div.className = `msg ${isMe ? 'msg-me' : 'msg-other'}`;
-        div.innerHTML = `
-            <span class="msg-info">${data.icon} ${data.username}</span>
-            <div>${data.message}</div>
-        `;
-        
-        messagesDiv.appendChild(div);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        let content = `<b>${data.icon} ${data.username}</b><br>${data.message}`;
+        if(data.file) {
+            if(data.fileType.startsWith('image')) content += `<br><img src="${data.file}" class="img-msg">`;
+            else content += `<br><a href="${data.file}" download="${data.fileName}" class="file-link">📥 دانلود ${data.fileName}</a>`;
+        }
+        div.innerHTML = content;
+        document.getElementById('messages').appendChild(div);
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     });
 
-    socket.on('error-msg', (msg) => {
-        alert(msg);
-        window.location.reload();
-    });
+    socket.on('error-msg', (m) => { alert(m); location.reload(); });
 </script>
 </body>
 </html>
