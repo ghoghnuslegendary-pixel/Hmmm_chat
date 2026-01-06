@@ -2,43 +2,41 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>Hmmm Chat</title>
+<title>Hmmm Chat Pro</title>
 <script src="/socket.io/socket.io.js"></script>
-
 <style>
 body{
   margin:0;
   font-family:sans-serif;
-  background:linear-gradient(135deg,#6366f1,#9333ea);
   height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
+  background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb');
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.5s;
 }
-
 .card{
-  width:360px;
+  width:400px;
   background:rgba(255,255,255,.15);
   backdrop-filter:blur(15px);
   border-radius:18px;
   padding:20px;
   color:white;
 }
-
-input,button{
+input,button,select{
   width:100%;
   padding:10px;
   border-radius:10px;
   border:none;
   margin-top:10px;
 }
-
 button{
   background:#22c55e;
   font-weight:bold;
   cursor:pointer;
 }
-
 #chat{display:none}
 #messages{
   height:260px;
@@ -48,15 +46,38 @@ button{
 .msg{margin:6px 0}
 .system{font-size:12px;color:#fde047}
 #typing{font-size:12px;opacity:.7}
+.stickers img{width:40px;margin:2px;cursor:pointer;}
 </style>
 </head>
-
 <body>
 
 <div class="card" id="login">
-  <h2>🔥 Hmmm Chat</h2>
+  <h2>🔥 Hmmm Chat Pro</h2>
   <input id="username" placeholder="نام کاربری">
+  <input id="password" placeholder="رمز عبور" type="password">
   <input id="room" placeholder="نام روم">
+  <select id="avatar">
+    <option value="😎">😎</option>
+    <option value="👻">👻</option>
+    <option value="🦊">🦊</option>
+    <option value="🐱">🐱</option>
+    <option value="🐶">🐶</option>
+    <option value="🐼">🐼</option>
+    <option value="🐵">🐵</option>
+    <option value="🐸">🐸</option>
+    <option value="🦁">🦁</option>
+    <option value="🐷">🐷</option>
+    <option value="🐔">🐔</option>
+    <option value="🐧">🐧</option>
+    <option value="🦄">🦄</option>
+    <option value="🐙">🐙</option>
+    <option value="🦖">🦖</option>
+    <option value="🐢">🐢</option>
+    <option value="🐠">🐠</option>
+    <option value="🐞">🐞</option>
+    <option value="🐝">🐝</option>
+    <option value="🦋">🦋</option>
+  </select>
   <button onclick="join()">ورود</button>
   <p id="error"></p>
 </div>
@@ -65,12 +86,16 @@ button{
   <div id="timer"></div>
   <div id="messages"></div>
   <div id="typing"></div>
+  <input type="file" id="fileInput">
   <input id="text" placeholder="پیام..." oninput="typingFn()">
   <button onclick="send()">ارسال</button>
+  <div class="stickers">
+    <!-- استیکرها توسط JS اضافه میشه -->
+  </div>
+  <button onclick="changeBackground()">تغییر پس‌زمینه</button>
 </div>
 
 <audio id="sound" src="https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3"></audio>
-
 <script src="app.js"></script>
 </body>
 </html>
