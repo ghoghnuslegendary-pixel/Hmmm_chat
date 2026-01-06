@@ -10,7 +10,7 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = "./data.json";
 
-app.use(express.static("."));
+app.use(express.static("public"));
 
 if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "{}");
 const rooms = JSON.parse(fs.readFileSync(DATA_FILE));
