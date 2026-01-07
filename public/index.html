@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>Hmmm Chat Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Socket.IO -->
 <script src="/socket.io/socket.io.js"></script>
+
 <style>
 body{
   margin:0;
@@ -12,50 +16,101 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb');
-  background-size: cover;
-  background-position: center;
-  transition: background-image 0.5s;
+  background-image:url('https://images.unsplash.com/photo-1506744038136-46273834b3fb');
+  background-size:cover;
+  background-position:center;
+  transition:background-image .5s ease;
 }
+
 .card{
   width:400px;
-  background:rgba(255,255,255,.15);
+  max-width:90%;
+  background:rgba(0,0,0,.55);
   backdrop-filter:blur(15px);
   border-radius:18px;
   padding:20px;
   color:white;
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
 }
+
+h2{text-align:center}
+
 input,button,select{
   width:100%;
   padding:10px;
   border-radius:10px;
   border:none;
   margin-top:10px;
+  outline:none;
 }
+
 button{
   background:#22c55e;
   font-weight:bold;
   cursor:pointer;
 }
+
+button:hover{opacity:.9}
+
 #chat{display:none}
+
+#error{
+  color:#f87171;
+  font-size:13px;
+  margin-top:8px;
+  text-align:center;
+}
+
+#timer{
+  text-align:center;
+  font-size:14px;
+  margin-bottom:6px;
+}
+
 #messages{
   height:260px;
   overflow-y:auto;
   margin:10px 0;
+  font-size:14px;
 }
+
 .msg{margin:6px 0}
-.system{font-size:12px;color:#fde047}
-#typing{font-size:12px;opacity:.7}
-.stickers img{width:40px;margin:2px;cursor:pointer;}
+
+.system{
+  font-size:12px;
+  color:#fde047;
+  text-align:center;
+}
+
+#typing{
+  font-size:12px;
+  opacity:.7;
+  margin-bottom:4px;
+}
+
+.stickers{
+  margin-top:10px;
+  text-align:center;
+}
+
+.stickers span{
+  font-size:22px;
+  margin:4px;
+  cursor:pointer;
+}
 </style>
 </head>
+
 <body>
 
+<!-- LOGIN -->
 <div class="card" id="login">
   <h2>🔥 Hmmm Chat Pro</h2>
+
   <input id="username" placeholder="نام کاربری">
   <input id="password" placeholder="رمز عبور" type="password">
   <input id="room" placeholder="نام روم">
+
   <select id="avatar">
     <option value="😎">😎</option>
     <option value="👻">👻</option>
@@ -78,24 +133,30 @@ button{
     <option value="🐝">🐝</option>
     <option value="🦋">🦋</option>
   </select>
+
   <button onclick="join()">ورود</button>
   <p id="error"></p>
 </div>
 
+<!-- CHAT -->
 <div class="card" id="chat">
   <div id="timer"></div>
+
   <div id="messages"></div>
   <div id="typing"></div>
+
   <input type="file" id="fileInput">
   <input id="text" placeholder="پیام..." oninput="typingFn()">
   <button onclick="send()">ارسال</button>
-  <div class="stickers">
-    <!-- استیکرها توسط JS اضافه میشه -->
-  </div>
+
+  <div class="stickers"></div>
+
   <button onclick="changeBackground()">تغییر پس‌زمینه</button>
 </div>
 
 <audio id="sound" src="https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3"></audio>
-<script src="app.js"></script>
+
+<!-- ✅ JS پابلیک فیکس‌شده -->
+<script src="client.js"></script>
 </body>
 </html>
