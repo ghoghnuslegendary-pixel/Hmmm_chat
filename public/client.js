@@ -1,4 +1,8 @@
-const socket = io();
+const socket = io(window.location.origin, {
+  transports: ["websocket"],
+  secure: true
+});
+
 let time = 900;
 let typingTimer;
 
@@ -9,6 +13,7 @@ const backgrounds = [
 ];
 let bgIndex = 0;
 
+// ---------- LOGIN ----------
 function join() {
   const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
@@ -16,6 +21,7 @@ function join() {
   const avatar = document.getElementById("avatar").value;
 
   if (!username || !password || !room) return;
+
   socket.emit("login", { username, password, room, avatar });
 }
 
@@ -26,23 +32,29 @@ socket.on("loginError", msg => {
 socket.on("history", msgs => {
   document.getElementById("login").style.display = "none";
   document.getElementById("chat").style.display = "block";
+
   msgs.forEach(addMsg);
 
-  setInterval(() => {
+  const timerEl = document.getElementById("timer");
+  const interval = setInterval(() => {
     time--;
-    document.getElementById("timer").innerText = `⏳ ${Math.floor(time/60)}:${time%60}`;
+    timerEl.innerText = `⏳ ${Math.floor(time / 60)}:${String(time % 60).padStart(2, "0")}`;
+    if (time <= 0) clearInterval(interval);
   }, 1000);
 
   initStickers();
 });
 
+// ---------- MESSAGE ----------
 function send() {
   const textEl = document.getElementById("text");
-  if (textEl.value.trim()) {
-    socket.emit("message", textEl.value);
-    textEl.value = "";
-    socket.emit("stopTyping");
-  }
+  const text = textEl.value.trim();
+
+  if (!text) return;
+
+  socket.emit("message", text);
+  textEl.value = "";
+  socket.emit("stopTyping");
 }
 
 function typingFn() {
@@ -53,21 +65,31 @@ function typingFn() {
   }, 1000);
 }
 
-document.getElementById("fileInput").addEventListener("change", async e => {
-  const file = e.target.files[0];
-  if (!file) return;
+// ---------- FILE ----------
+const fileInput = document.getElementById("fileInput");
+if (fileInput) {
+  fileInput.addEventListener("change", async e => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const formData = new FormData();
-  formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-  const res = await fetch("/upload", { method: "POST", body: formData });
-  const data = await res.json();
-  socket.emit("file", data);
-});
+    const res = await fetch("/upload", {
+      method: "POST",
+      body: formData
+    });
 
+    const data = await res.json();
+    socket.emit("file", data);
+  });
+}
+
+// ---------- SOCKET EVENTS ----------
 socket.on("message", msg => {
   addMsg(msg);
-  document.getElementById("sound").play();
+  const sound = document.getElementById("sound");
+  if (sound) sound.play();
 });
 
 socket.on("system", msg => {
@@ -87,31 +109,43 @@ socket.on("timeup", () => {
   location.reload();
 });
 
+// ---------- UI ----------
 function addMsg(m) {
-  let content = `<div class="msg"><b>${m.user}</b>: `;
-  if (m.text) content += m.text;
-  if (m.file) content += `<br><a href="${m.file.url}" target="_blank">${m.file.name}</a>`;
-  content += ` <small>${m.time}</small></div>`;
-  document.getElementById("messages").innerHTML += content;
-  const msgDiv = document.getElementById("messages");
-  msgDiv.scrollTop = msgDiv.scrollHeight;
+  let html = `<div class="msg"><b>${m.user}</b>: `;
+
+  if (m.text) html += m.text;
+  if (m.file) {
+    html += `<br><a href="${m.file.url}" target="_blank">${m.file.name}</a>`;
+  }
+
+  html += ` <small>${m.time}</small></div>`;
+
+  const box = document.getElementById("messages");
+  box.innerHTML += html;
+  box.scrollTop = box.scrollHeight;
 }
 
-// استیکرها
-const stickerList = ["🔥","😂","❤️","👍","😎","👻","🐱","🐶","🐼","🦊","🐵","🐸","🦁","🐷","🐔","🐧","🦄","🐙","🦖","🐢"];
+// ---------- STICKERS ----------
+const stickerList = [
+  "🔥","😂","❤️","👍","😎","👻","🐱","🐶","🐼","🦊",
+  "🐵","🐸","🦁","🐷","🐔","🐧","🦄","🐙","🦖","🐢"
+];
+
 function initStickers() {
   const container = document.querySelector(".stickers");
+  if (!container) return;
+
   container.innerHTML = "";
   stickerList.forEach(s => {
-    const img = document.createElement("span");
-    img.innerText = s;
-    img.style.cursor = "pointer";
-    img.onclick = () => socket.emit("message", s);
-    container.appendChild(img);
+    const span = document.createElement("span");
+    span.innerText = s;
+    span.style.cursor = "pointer";
+    span.onclick = () => socket.emit("message", s);
+    container.appendChild(span);
   });
 }
 
-// تغییر پس‌زمینه
+// ---------- BACKGROUND ----------
 function changeBackground() {
   bgIndex = (bgIndex + 1) % backgrounds.length;
   document.body.style.backgroundImage = backgrounds[bgIndex];
