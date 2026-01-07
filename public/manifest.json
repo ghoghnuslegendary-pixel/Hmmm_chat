@@ -1,0 +1,9 @@
+{
+  "name": "Hmmm Chat Pro",
+  "short_name": "HmmmChat",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#22c55e",
+  "theme_color": "#22c55e",
+  "icons":[{"src":"icon-fantasy.png","sizes":"192x192","type":"image/png"}]
+}
