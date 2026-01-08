@@ -3,6 +3,8 @@ import http from "http";
 import { Server } from "socket.io";
 import fs from "fs";
 import multer from "multer";
+import path from "path";
+import crypto from "crypto";
 
 const app = express();
 const server = http.createServer(app);
@@ -11,117 +13,122 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = "./data.json";
 const UPLOADS_DIR = "./uploads";
-const MAX_FILE_SIZE = 60 * 1024 * 1024; // 60MB
-
-// داده‌ها
-if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "{}");
-const rooms = JSON.parse(fs.readFileSync(DATA_FILE));
-
-// آپلود فایل
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename: (req, file, cb) => cb(null, Date.now() + "_" + file.originalname)
-});
-const upload = multer({ storage, limits: { fileSize: MAX_FILE_SIZE } });
-
-// کاربران آنلاین: { socketId: {username, room, timer} }
-const onlineUsers = {};
-
-function save() { fs.writeFileSync(DATA_FILE, JSON.stringify(rooms, null, 2)); }
 
 app.use(express.static("public"));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(UPLOADS_DIR));
 
-// مسیر آپلود
-app.post("/upload", upload.single("file"), (req,res)=>{
-  if(!req.file) return res.status(400).send("فایل آپلود نشد یا بیش از 60MB است");
-  res.json({ filename: req.file.originalname, url: `/uploads/${req.file.filename}` });
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({
+  users: {},
+  rooms: {}
+}, null, 2));
+
+const db = JSON.parse(fs.readFileSync(DATA_FILE));
+
+function save() {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
+}
+
+function hash(pw) {
+  return crypto.createHash("sha256").update(pw).digest("hex");
+}
+
+/* ========== Upload (60MB) ========== */
+const upload = multer({
+  dest: UPLOADS_DIR,
+  limits: { fileSize: 60 * 1024 * 1024 }
 });
 
-// اتصال Socket.IO
+app.post("/upload", upload.single("file"), (req, res) => {
+  res.json({
+    name: req.file.originalname,
+    url: `/uploads/${req.file.filename}`
+  });
+});
+
+app.use("/uploads", express.static(UPLOADS_DIR));
+
+/* ========== SOCKET ========== */
+const online = {};
+
 io.on("connection", socket => {
 
-  socket.on("login", ({ username, password, room, avatar }) => {
-    if(!username||!password||!room) return;
+  socket.on("register", ({ username, password }) => {
+    if (db.users[username]) {
+      socket.emit("errorMsg", "این یوزرنیم قبلاً ثبت شده");
+      return;
+    }
+    db.users[username] = { password: hash(password) };
+    save();
+    socket.emit("registered");
+  });
 
-    if(!rooms[room]) rooms[room] = { users:{}, messages:[] };
-
-    // ثبت‌نام یا ورود
-    if(!rooms[room].users[username]){
-      rooms[room].users[username] = { password, avatar, bg:0 };
-    } else if(rooms[room].users[username].password !== password){
-      socket.emit("loginError","کجا می خواستی بری ببم جان اونجا جیزه");
+  socket.on("login", ({ username, password, room }) => {
+    if (!db.users[username] ||
+        db.users[username].password !== hash(password)) {
+      socket.emit("errorMsg", "کجا می‌خواستی بری ببم جان، اونجا چیزه 😏");
       return;
     }
 
+    if (!db.rooms[room]) {
+      db.rooms[room] = {
+        admin: username,
+        banned: [],
+        messages: []
+      };
+    }
+
+    if (db.rooms[room].banned.includes(username)) {
+      socket.emit("errorMsg", "⛔ بن شدی");
+      return;
+    }
+
+    socket.join(room);
     socket.username = username;
     socket.room = room;
-    socket.join(room);
-    onlineUsers[socket.id] = { username, room };
+    online[socket.id] = socket;
 
-    socket.emit("history", rooms[room].messages);
-    socket.to(room).emit("system", `${username} وارد شد`);
-
-    // تایمر 15 دقیقه
-    const timer = setTimeout(()=>{
-      socket.emit("timeup");
-      socket.disconnect();
-    }, 15*60*1000);
-    onlineUsers[socket.id].timer = timer;
+    socket.emit("history", db.rooms[room].messages);
+    io.to(room).emit("system", `${username} وارد شد`);
   });
 
-  socket.on("typing", () => {
-    if(!onlineUsers[socket.id]) return;
-    socket.to(onlineUsers[socket.id].room).emit("typing", onlineUsers[socket.id].username);
-  });
-
-  socket.on("stopTyping", () => {
-    if(!onlineUsers[socket.id]) return;
-    socket.to(onlineUsers[socket.id].room).emit("stopTyping");
-  });
-
-  socket.on("message", text=>{
-    if(!onlineUsers[socket.id]) return;
-    const { username, room } = onlineUsers[socket.id];
-    const msg = { user:username, text, time:new Date().toLocaleTimeString() };
-    rooms[room].messages.push(msg);
-    if(rooms[room].messages.length>100) rooms[room].messages.shift();
+  socket.on("message", text => {
+    if (!socket.room) return;
+    const msg = {
+      user: socket.username,
+      text,
+      time: new Date().toLocaleTimeString()
+    };
+    db.rooms[socket.room].messages.push(msg);
     save();
-    io.to(room).emit("message", msg);
+    io.to(socket.room).emit("message", msg);
   });
 
-  socket.on("file", ({ filename, url })=>{
-    if(!onlineUsers[socket.id]) return;
-    const { username, room } = onlineUsers[socket.id];
-    const msg = { user:username, file:{name:filename,url}, time:new Date().toLocaleTimeString() };
-    rooms[room].messages.push(msg);
-    if(rooms[room].messages.length>100) rooms[room].messages.shift();
+  socket.on("file", file => {
+    const msg = {
+      user: socket.username,
+      file,
+      time: new Date().toLocaleTimeString()
+    };
+    db.rooms[socket.room].messages.push(msg);
     save();
-    io.to(room).emit("message", msg);
+    io.to(socket.room).emit("message", msg);
   });
 
-  socket.on("voice", ({ filename, url })=>{
-    if(!onlineUsers[socket.id]) return;
-    const { username, room } = onlineUsers[socket.id];
-    const msg = { user:username, voice:{name:filename,url}, time:new Date().toLocaleTimeString() };
-    rooms[room].messages.push(msg);
-    if(rooms[room].messages.length>100) rooms[room].messages.shift();
+  socket.on("ban", target => {
+    const room = db.rooms[socket.room];
+    if (room.admin !== socket.username) return;
+    room.banned.push(target);
     save();
-    io.to(room).emit("voice", msg);
+    io.to(socket.room).emit("system", `${target} بن شد`);
   });
 
-  socket.on("disconnect", ()=>{
-    const user = onlineUsers[socket.id];
-    if(!user) return;
-    clearTimeout(user.timer);
-    const { username, room } = user;
-    delete onlineUsers[socket.id];
-    socket.to(room).emit("system",`${username} خارج شد`);
+  socket.on("disconnect", () => {
+    if (socket.room) {
+      io.to(socket.room).emit("system", `${socket.username} رفت`);
+    }
+    delete online[socket.id];
   });
-
 });
 
-server.listen(PORT,()=>console.log("🚀 Chat running on",PORT));
+server.listen(PORT, () => console.log("🚀 RUNNING"));
