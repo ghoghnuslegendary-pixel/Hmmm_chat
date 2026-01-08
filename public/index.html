@@ -2,41 +2,56 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>Hmmm Chat Pro</title>
+<title>Hmmm Chat</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-fantasy.png">
-<link rel="stylesheet" href="styles.css">
 <script src="/socket.io/socket.io.js"></script>
+<style>
+:root{
+  --bg:#0f172a;
+  --card:#020617cc;
+  --text:white;
+}
+.light{
+  --bg:#e5e7eb;
+  --card:white;
+  --text:black;
+}
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:var(--text);
+}
+.card{
+  width:380px;
+  background:var(--card);
+  padding:20px;
+  border-radius:18px;
+}
+</style>
 </head>
-<body class="light">
-<div class="card" id="login">
-  <h2>🔥 Hmmm Chat Pro</h2>
-  <input id="username" placeholder="نام کاربری">
-  <input id="password" type="password" placeholder="رمز عبور">
-  <input id="room" placeholder="نام روم">
-  <select id="avatar">
-    <option value="😎">😎</option>
-    <option value="👻">👻</option>
-    <option value="🦊">🦊</option>
-    <option value="🐱">🐱</option>
-    <option value="🐶">🐶</option>
-    <option value="🐼">🐼</option>
-  </select>
-  <button onclick="join()">ورود</button>
-  <p id="error"></p>
+<body>
+
+<div class="card" id="auth">
+  <input id="user" placeholder="یوزرنیم">
+  <input id="pass" placeholder="رمز" type="password">
+  <input id="room" placeholder="روم">
+  <button onclick="register()">ثبت‌نام</button>
+  <button onclick="login()">ورود</button>
+  <p id="err"></p>
 </div>
-<div class="card" id="chat">
-  <div id="timer"></div>
-  <div id="messages"></div>
-  <div id="typing"></div>
-  <input type="file" id="fileInput">
-  <input id="text" placeholder="پیام..." oninput="typingFn()">
+
+<div class="card" id="chat" style="display:none">
+  <div id="msgs"></div>
+  <input id="text">
   <button onclick="send()">ارسال</button>
-  <div class="stickers"></div>
-  <button onclick="changeBackground()">تغییر پس‌زمینه</button>
-  <button onclick="document.body.classList.toggle('dark')">دارک تم</button>
+  <input type="file" id="file">
+  <button onclick="toggle()">🌗</button>
 </div>
-<audio id="sound" src="https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3"></audio>
+
 <script src="client.js"></script>
 </body>
 </html>
